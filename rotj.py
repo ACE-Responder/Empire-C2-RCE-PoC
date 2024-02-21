@@ -99,8 +99,8 @@ class Agent:
     def stage(self, stage0=False):
         #Recover staging key
         r = requests.get(self.server+'/download/python')
-        self.sk = re.search('key=IV\+\'(.*)\'\.encode',r.text).group(1)
-        print('Recovered staging key '+self.sk)
+        self.sk = re.search('key=IV\+\'(.*)\'\.encode',r.text).group(1).encode('UTF-8')
+        print('Recovered staging key ',self.sk)
         #stage0 - This is not necessary. Leaving in 
         if stage0:
             session_id = b'00000000'
